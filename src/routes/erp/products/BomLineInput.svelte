@@ -7,6 +7,7 @@
 		id: number;
 		code: string;
 		name: string;
+		unit: string;
 	};
 
 	type LineItem = {
@@ -72,6 +73,11 @@
 			.map((l) => `${l.materialSkuId},${l.quantityPerUnit}`)
 			.join('\n')
 	);
+
+	function getMaterialUnit(materialSkuId: string): string {
+		const material = materials.find((m) => String(m.id) === materialSkuId);
+		return material?.unit ?? '';
+	}
 </script>
 
 <div class="space-y-3">
@@ -90,16 +96,21 @@
 					/>
 				</div>
 
-				<label class="w-28">
-					<span class="text-muted-foreground mb-1 block text-xs">用量</span>
-					<Input
-						type="number"
-						step="0.01"
-						min="0"
-						bind:value={line.quantityPerUnit}
-						placeholder="0.00"
-					/>
-				</label>
+				<div class="flex items-end gap-1">
+					<label class="w-24">
+						<span class="text-muted-foreground mb-1 block text-xs">用量</span>
+						<Input
+							type="number"
+							step="0.01"
+							min="0"
+							bind:value={line.quantityPerUnit}
+							placeholder="0.00"
+						/>
+					</label>
+					{#if line.materialSkuId}
+						<span class="text-muted-foreground pb-2 text-sm">{getMaterialUnit(line.materialSkuId)}</span>
+					{/if}
+				</div>
 
 				<Button
 					type="button"

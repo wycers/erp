@@ -1,4 +1,4 @@
-## ADDED Requirements
+## MODIFIED Requirements
 
 ### Requirement: Material unit field
 原料（material_sku）表 SHALL 包含一个必填的 `unit` 字段，用于存储计量单位（如"米"、"个"、"件"等）。

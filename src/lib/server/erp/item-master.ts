@@ -25,12 +25,15 @@ export const listProducts = async () =>
 export const createMaterial = async (input: {
 	code: string;
 	name: string;
-	unit?: string;
+	unit: string;
 	imageUrl?: string;
 	note?: string;
 }) => {
 	if (!input.code.trim() || !input.name.trim()) {
 		throw new ErpValidationError('Material code and name are required');
+	}
+	if (!input.unit.trim()) {
+		throw new ErpValidationError('Material unit is required');
 	}
 
 	return db.transaction(async (tx) => {
@@ -47,7 +50,7 @@ export const createMaterial = async (input: {
 				inventoryItemId: item.id,
 				code: input.code.trim(),
 				name: input.name.trim(),
-				unit: input.unit?.trim() || null,
+				unit: input.unit.trim(),
 				imageUrl: input.imageUrl?.trim() || null,
 				note: input.note?.trim() || null
 			})
@@ -67,7 +70,7 @@ export const updateMaterial = async (input: {
 	id: number;
 	code: string;
 	name: string;
-	unit?: string;
+	unit: string;
 	imageUrl?: string;
 	note?: string;
 	isActive: boolean;
@@ -75,13 +78,16 @@ export const updateMaterial = async (input: {
 	if (!input.code.trim() || !input.name.trim()) {
 		throw new ErpValidationError('Material code and name are required');
 	}
+	if (!input.unit.trim()) {
+		throw new ErpValidationError('Material unit is required');
+	}
 
 	const [updated] = await db
 		.update(materialSku)
 		.set({
 			code: input.code.trim(),
 			name: input.name.trim(),
-			unit: input.unit?.trim() || null,
+			unit: input.unit.trim(),
 			imageUrl: input.imageUrl?.trim() || null,
 			note: input.note?.trim() || null,
 			isActive: input.isActive,
@@ -97,9 +103,12 @@ export const updateMaterial = async (input: {
 	return updated;
 };
 
-export const createProduct = async (input: { code: string; name: string; unit?: string; note?: string }) => {
+export const createProduct = async (input: { code: string; name: string; unit: string; note?: string }) => {
 	if (!input.code.trim() || !input.name.trim()) {
 		throw new ErpValidationError('Product code and name are required');
+	}
+	if (!input.unit.trim()) {
+		throw new ErpValidationError('Product unit is required');
 	}
 
 	return db.transaction(async (tx) => {
@@ -116,7 +125,7 @@ export const createProduct = async (input: { code: string; name: string; unit?: 
 				inventoryItemId: item.id,
 				code: input.code.trim(),
 				name: input.name.trim(),
-				unit: input.unit?.trim() || null,
+				unit: input.unit.trim(),
 				note: input.note?.trim() || null
 			})
 			.returning();
@@ -135,12 +144,15 @@ export const updateProduct = async (input: {
 	id: number;
 	code: string;
 	name: string;
-	unit?: string;
+	unit: string;
 	note?: string;
 	isActive: boolean;
 }) => {
 	if (!input.code.trim() || !input.name.trim()) {
 		throw new ErpValidationError('Product code and name are required');
+	}
+	if (!input.unit.trim()) {
+		throw new ErpValidationError('Product unit is required');
 	}
 
 	const [updated] = await db
@@ -148,7 +160,7 @@ export const updateProduct = async (input: {
 		.set({
 			code: input.code.trim(),
 			name: input.name.trim(),
-			unit: input.unit?.trim() || null,
+			unit: input.unit.trim(),
 			note: input.note?.trim() || null,
 			isActive: input.isActive,
 			updatedAt: new Date()

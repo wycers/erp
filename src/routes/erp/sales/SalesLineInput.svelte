@@ -7,6 +7,7 @@
 		id: number;
 		code: string;
 		name: string;
+		unit: string;
 	};
 
 	type LineItem = {
@@ -64,6 +65,11 @@
 			.map((l) => `${l.productId},${l.quantity},${l.sellingUnitPrice}`)
 			.join('\n')
 	);
+
+	function getProductUnit(productId: string): string {
+		const product = products.find((p) => String(p.id) === productId);
+		return product?.unit ?? '';
+	}
 </script>
 
 <div class="space-y-3">
@@ -82,16 +88,21 @@
 					/>
 				</div>
 
-				<label class="w-24">
-					<span class="text-muted-foreground mb-1 block text-xs">数量</span>
-					<Input
-						type="number"
-						step="0.01"
-						min="0"
-						bind:value={line.quantity}
-						placeholder="0.00"
-					/>
-				</label>
+				<div class="flex items-end gap-1">
+					<label class="w-20">
+						<span class="text-muted-foreground mb-1 block text-xs">数量</span>
+						<Input
+							type="number"
+							step="0.01"
+							min="0"
+							bind:value={line.quantity}
+							placeholder="0.00"
+						/>
+					</label>
+					{#if line.productId}
+						<span class="text-muted-foreground pb-2 text-sm">{getProductUnit(line.productId)}</span>
+					{/if}
+				</div>
 
 				<label class="w-28">
 					<span class="text-muted-foreground mb-1 block text-xs">售价</span>
