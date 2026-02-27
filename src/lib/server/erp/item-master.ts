@@ -25,6 +25,7 @@ export const listProducts = async () =>
 export const createMaterial = async (input: {
 	code: string;
 	name: string;
+	unit?: string;
 	imageUrl?: string;
 	note?: string;
 }) => {
@@ -46,6 +47,7 @@ export const createMaterial = async (input: {
 				inventoryItemId: item.id,
 				code: input.code.trim(),
 				name: input.name.trim(),
+				unit: input.unit?.trim() || null,
 				imageUrl: input.imageUrl?.trim() || null,
 				note: input.note?.trim() || null
 			})
@@ -65,6 +67,7 @@ export const updateMaterial = async (input: {
 	id: number;
 	code: string;
 	name: string;
+	unit?: string;
 	imageUrl?: string;
 	note?: string;
 	isActive: boolean;
@@ -78,6 +81,7 @@ export const updateMaterial = async (input: {
 		.set({
 			code: input.code.trim(),
 			name: input.name.trim(),
+			unit: input.unit?.trim() || null,
 			imageUrl: input.imageUrl?.trim() || null,
 			note: input.note?.trim() || null,
 			isActive: input.isActive,
@@ -93,7 +97,7 @@ export const updateMaterial = async (input: {
 	return updated;
 };
 
-export const createProduct = async (input: { code: string; name: string; note?: string }) => {
+export const createProduct = async (input: { code: string; name: string; unit?: string; note?: string }) => {
 	if (!input.code.trim() || !input.name.trim()) {
 		throw new ErpValidationError('Product code and name are required');
 	}
@@ -112,6 +116,7 @@ export const createProduct = async (input: { code: string; name: string; note?: 
 				inventoryItemId: item.id,
 				code: input.code.trim(),
 				name: input.name.trim(),
+				unit: input.unit?.trim() || null,
 				note: input.note?.trim() || null
 			})
 			.returning();
@@ -130,6 +135,7 @@ export const updateProduct = async (input: {
 	id: number;
 	code: string;
 	name: string;
+	unit?: string;
 	note?: string;
 	isActive: boolean;
 }) => {
@@ -142,6 +148,7 @@ export const updateProduct = async (input: {
 		.set({
 			code: input.code.trim(),
 			name: input.name.trim(),
+			unit: input.unit?.trim() || null,
 			note: input.note?.trim() || null,
 			isActive: input.isActive,
 			updatedAt: new Date()

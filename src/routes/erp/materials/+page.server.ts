@@ -17,6 +17,7 @@ export const actions: Actions = {
 			await createMaterial({
 				code: getText(formData, 'code'),
 				name: getText(formData, 'name'),
+				unit: getText(formData, 'unit'),
 				imageUrl: getText(formData, 'imageUrl'),
 				note: getText(formData, 'note')
 			});
@@ -32,6 +33,7 @@ export const actions: Actions = {
 				id: Number(formData.get('id')),
 				code: getText(formData, 'code'),
 				name: getText(formData, 'name'),
+				unit: getText(formData, 'unit'),
 				imageUrl: getText(formData, 'imageUrl'),
 				note: getText(formData, 'note'),
 				isActive: formData.get('isActive') === 'on'

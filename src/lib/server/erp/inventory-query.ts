@@ -19,6 +19,7 @@ export type InventoryOverviewRow = {
 	entityId: number;
 	code: string;
 	name: string;
+	unit: string | null;
 	note: string | null;
 	imageUrl: string | null;
 	quantity: number;
@@ -32,6 +33,7 @@ export const listInventoryOverview = async (): Promise<InventoryOverviewRow[]> =
 			entityId: materialSku.id,
 			code: materialSku.code,
 			name: materialSku.name,
+			unit: materialSku.unit,
 			note: materialSku.note,
 			imageUrl: materialSku.imageUrl,
 			quantity: inventoryBalance.quantity,
@@ -48,6 +50,7 @@ export const listInventoryOverview = async (): Promise<InventoryOverviewRow[]> =
 			entityId: finishedProduct.id,
 			code: finishedProduct.code,
 			name: finishedProduct.name,
+			unit: finishedProduct.unit,
 			note: finishedProduct.note,
 			imageUrl: sql<string | null>`null`,
 			quantity: inventoryBalance.quantity,
@@ -68,6 +71,7 @@ export const listInventoryOverview = async (): Promise<InventoryOverviewRow[]> =
 			entityId: Number(row.entityId),
 			code: row.code,
 			name: row.name,
+			unit: row.unit,
 			note: row.note,
 			imageUrl: row.imageUrl,
 			quantity: toNumber(row.quantity),
@@ -79,6 +83,7 @@ export const listInventoryOverview = async (): Promise<InventoryOverviewRow[]> =
 			entityId: Number(row.entityId),
 			code: row.code,
 			name: row.name,
+			unit: row.unit,
 			note: row.note,
 			imageUrl: row.imageUrl,
 			quantity: toNumber(row.quantity),
@@ -96,6 +101,7 @@ export const getInventoryItemDetail = async (inventoryItemId: number) => {
 			entityId: materialSku.id,
 			code: materialSku.code,
 			name: materialSku.name,
+			unit: materialSku.unit,
 			note: materialSku.note,
 			imageUrl: materialSku.imageUrl,
 			quantity: inventoryBalance.quantity,
@@ -114,6 +120,7 @@ export const getInventoryItemDetail = async (inventoryItemId: number) => {
 			entityId: Number(material.entityId),
 			code: material.code,
 			name: material.name,
+			unit: material.unit,
 			note: material.note,
 			imageUrl: material.imageUrl,
 			quantity: toNumber(material.quantity),
@@ -127,6 +134,7 @@ export const getInventoryItemDetail = async (inventoryItemId: number) => {
 			entityId: finishedProduct.id,
 			code: finishedProduct.code,
 			name: finishedProduct.name,
+			unit: finishedProduct.unit,
 			note: finishedProduct.note,
 			imageUrl: sql<string | null>`null`,
 			quantity: inventoryBalance.quantity,
@@ -148,6 +156,7 @@ export const getInventoryItemDetail = async (inventoryItemId: number) => {
 			entityId: Number(product.entityId),
 			code: product.code,
 			name: product.name,
+			unit: product.unit,
 			note: product.note,
 			imageUrl: product.imageUrl,
 			quantity: toNumber(product.quantity),

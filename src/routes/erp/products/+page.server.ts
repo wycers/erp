@@ -36,6 +36,7 @@ export const actions: Actions = {
 			await createProduct({
 				code: getText(formData, 'code'),
 				name: getText(formData, 'name'),
+				unit: getText(formData, 'unit'),
 				note: getText(formData, 'note')
 			});
 		} catch (error) {
@@ -50,6 +51,7 @@ export const actions: Actions = {
 				id: Number(formData.get('id')),
 				code: getText(formData, 'code'),
 				name: getText(formData, 'name'),
+				unit: getText(formData, 'unit'),
 				note: getText(formData, 'note'),
 				isActive: formData.get('isActive') === 'on'
 			});

@@ -1,17 +1,22 @@
 <script lang="ts">
 	import { resolve } from '$app/paths';
 	import type { PageServerData } from './$types';
+	import { Button } from '$lib/components/ui/button';
 
 	let { data }: { data: PageServerData } = $props();
 </script>
 
 <section class="space-y-4">
-	<p><a class="text-blue-700 underline" href={resolve('/erp/inventory')}>返回库存总览</a></p>
-	<h2 class="text-xl font-semibold break-words text-gray-900">
+	<p>
+		<Button variant="link" class="h-auto p-0" href={resolve('/erp/inventory')}>
+			返回库存总览
+		</Button>
+	</p>
+	<h2 class="text-xl font-semibold break-words">
 		库存明细：{data.item.code} - {data.item.name}
 	</h2>
-	<p class="text-sm break-words text-gray-600">
-		类型：{data.item.kind} | 在库：{data.item.quantity.toFixed(2)} | 平均成本：{data.item.averageCost.toFixed(
+	<p class="text-muted-foreground text-sm break-words">
+		类型：{data.item.kind} | 单位：{data.item.unit ?? '-'} | 在库：{data.item.quantity.toFixed(2)} | 平均成本：{data.item.averageCost.toFixed(
 			2
 		)}
 	</p>
@@ -19,7 +24,7 @@
 	<div class="overflow-x-auto">
 		<table class="w-full min-w-[920px] border-collapse text-sm">
 			<thead>
-				<tr class="border-b border-gray-200 text-left text-gray-600">
+				<tr class="text-muted-foreground border-b text-left">
 					<th class="py-1 whitespace-nowrap">时间</th>
 					<th class="py-1 whitespace-nowrap">方向</th>
 					<th class="py-1 whitespace-nowrap">来源</th>
@@ -32,7 +37,7 @@
 			</thead>
 			<tbody>
 				{#each data.movements as movement (movement.id)}
-					<tr class="border-b border-gray-100">
+					<tr class="border-b border-border/50">
 						<td class="py-1 whitespace-nowrap">{movement.createdAt}</td>
 						<td class="py-1 whitespace-nowrap">{movement.direction}</td>
 						<td class="py-1 whitespace-nowrap">{movement.sourceType} #{movement.sourceNumber}</td>
