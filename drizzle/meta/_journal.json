@@ -8,6 +8,13 @@
       "when": 1772155513684,
       "tag": "0000_panoramic_chronomancer",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1772173301373,
+      "tag": "0001_lame_silver_fox",
+      "breakpoints": true
     }
   ]
 }
