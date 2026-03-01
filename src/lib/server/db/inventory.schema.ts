@@ -5,6 +5,7 @@ export const products = pgTable('products', {
 	sku: varchar('sku', { length: 50 }).notNull().unique(),
 	name: varchar('name', { length: 255 }).notNull(),
 	description: text('description'),
+	imageUrl: text('image_url'),
 	unitPrice: decimal('unit_price', { precision: 12, scale: 2 }).notNull(),
 	currency: varchar('currency', { length: 3 }).notNull().default('CNY'),
 	stockQuantity: integer('stock_quantity').notNull().default(0),

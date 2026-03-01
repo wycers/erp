@@ -25,6 +25,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		{
 			name: product.name,
 			description: product.description ?? '',
+			imageUrl: product.imageUrl ?? '',
 			unitPrice: product.unitPrice,
 			reorderPoint: product.reorderPoint
 		},
@@ -57,6 +58,7 @@ export const actions: Actions = {
 			id: params.id,
 			name: form.data.name,
 			description: form.data.description,
+			imageUrl: form.data.imageUrl || undefined,
 			unitPrice: form.data.unitPrice,
 			reorderPoint: form.data.reorderPoint
 		})

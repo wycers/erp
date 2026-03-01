@@ -8,6 +8,7 @@ export interface CreateProductInput {
 	sku: string
 	name: string
 	description?: string
+	imageUrl?: string
 	unitPrice: number
 	currency?: Currency
 	initialStock?: number
@@ -29,6 +30,7 @@ export class CreateProductCommand {
 				sku: input.sku,
 				name: input.name,
 				description: input.description,
+				imageUrl: input.imageUrl,
 				unitPrice: input.unitPrice,
 				currency: input.currency,
 				initialStock: input.initialStock,

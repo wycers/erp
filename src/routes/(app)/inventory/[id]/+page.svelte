@@ -1,14 +1,13 @@
 <script lang="ts">
 	import { superForm } from 'sveltekit-superforms'
-	import { zodClient } from 'sveltekit-superforms/adapters'
-	import { updateProductSchema, adjustStockSchema } from '$lib/application/inventory/schemas'
 	import { invalidateAll } from '$app/navigation'
 	import { Button } from '$lib/components/ui/button'
 	import { Input } from '$lib/components/ui/input'
 	import * as Card from '$lib/components/ui/card'
 	import { Badge } from '$lib/components/ui/badge'
 	import { Separator } from '$lib/components/ui/separator'
-	import { ArrowLeft, Package, Plus, Minus, Edit, Trash2, Loader2 } from '@lucide/svelte'
+	import { ImageUploader } from '$lib/components/ui/image-uploader'
+	import { ArrowLeft, Package, Plus, Minus, Edit, Trash2, Loader2, ImageIcon } from '@lucide/svelte'
 	import type { PageData } from './$types'
 
 	let { data }: { data: PageData } = $props()
@@ -23,7 +22,6 @@
 		delayed: updateDelayed,
 		message: updateMessage
 	} = superForm(data.updateForm, {
-		validators: zodClient(updateProductSchema),
 		resetForm: false,
 		onUpdated: ({ form }) => {
 			if (form.valid && form.message) {
@@ -40,7 +38,6 @@
 		delayed: stockDelayed,
 		message: stockMessage
 	} = superForm(data.stockForm, {
-		validators: zodClient(adjustStockSchema),
 		resetForm: true,
 		onUpdated: ({ form }) => {
 			if (form.valid && form.message) {
@@ -50,6 +47,18 @@
 		}
 	})
 
+	let editImageUrl = $state('')
+
+	$effect(() => {
+		if ($updateFormData.imageUrl !== undefined) {
+			editImageUrl = ($updateFormData.imageUrl as string) ?? ''
+		}
+	})
+
+	$effect(() => {
+		$updateFormData.imageUrl = editImageUrl || undefined
+	})
+
 	function startAdjustStock(type: 'add' | 'subtract') {
 		$stockFormData.adjustmentType = type
 		$stockFormData.reason = type === 'add' ? 'receipt' : 'shipment'
@@ -57,7 +66,7 @@
 	}
 </script>
 
-<div class="mx-auto max-w-4xl space-y-6">
+<div class="mx-auto max-w-5xl space-y-6">
 	<div class="flex items-center justify-between">
 		<div class="flex items-center gap-4">
 			<Button href="/inventory" variant="ghost" size="icon">
@@ -104,228 +113,274 @@
 		</div>
 	{/if}
 
-	<div class="grid gap-6 md:grid-cols-2">
-		<Card.Root>
-			<Card.Header>
-				<Card.Title class="flex items-center gap-2">
-					<Package class="size-5" />
-					Product Details
-				</Card.Title>
-			</Card.Header>
-			<Card.Content>
-				{#if isEditing}
-					<form method="POST" action="?/update" use:updateEnhance class="space-y-4">
-						<div class="space-y-2">
-							<label for="name" class="text-sm font-medium">Name</label>
-							<Input
-								id="name"
-								name="name"
-								bind:value={$updateFormData.name}
-								aria-invalid={$updateErrors.name ? 'true' : undefined}
-							/>
-							{#if $updateErrors.name}
-								<p class="text-destructive text-xs">{$updateErrors.name}</p>
-							{/if}
-						</div>
+	<div class="grid gap-6 lg:grid-cols-3">
+		<div class="lg:col-span-2">
+			<Card.Root>
+				<Card.Header>
+					<Card.Title class="flex items-center gap-2">
+						<Package class="size-5" />
+						Product Details
+					</Card.Title>
+				</Card.Header>
+				<Card.Content>
+					{#if isEditing}
+						<form method="POST" action="?/update" use:updateEnhance>
+							<div class="grid gap-6 md:grid-cols-3">
+								<div class="md:col-span-1">
+									<div class="space-y-2">
+										<span class="text-sm font-medium">Product Image</span>
+										<ImageUploader
+											name="imageUrl"
+											aspectRatio="square"
+											bind:value={editImageUrl}
+										/>
+									</div>
+								</div>
 
-						<div class="space-y-2">
-							<label for="description" class="text-sm font-medium">Description</label>
-							<textarea
-								id="description"
-								name="description"
-								class="border-input bg-background flex min-h-20 w-full rounded-md border px-3 py-2 text-sm"
-								bind:value={$updateFormData.description}
-							></textarea>
-						</div>
+								<div class="space-y-4 md:col-span-2">
+									<div class="space-y-2">
+										<label for="name" class="text-sm font-medium">Name</label>
+										<Input
+											id="name"
+											name="name"
+											bind:value={$updateFormData.name}
+											aria-invalid={$updateErrors.name ? 'true' : undefined}
+										/>
+										{#if $updateErrors.name}
+											<p class="text-destructive text-xs">{$updateErrors.name}</p>
+										{/if}
+									</div>
 
-						<div class="space-y-2">
-							<label for="unitPrice" class="text-sm font-medium">Unit Price</label>
-							<Input
-								id="unitPrice"
-								name="unitPrice"
-								type="number"
-								step="0.01"
-								bind:value={$updateFormData.unitPrice}
-								aria-invalid={$updateErrors.unitPrice ? 'true' : undefined}
-							/>
-							{#if $updateErrors.unitPrice}
-								<p class="text-destructive text-xs">{$updateErrors.unitPrice}</p>
-							{/if}
-						</div>
+									<div class="space-y-2">
+										<label for="description" class="text-sm font-medium">Description</label>
+										<textarea
+											id="description"
+											name="description"
+											class="border-input bg-background flex min-h-20 w-full rounded-md border px-3 py-2 text-sm"
+											bind:value={$updateFormData.description}
+										></textarea>
+									</div>
 
-						<div class="space-y-2">
-							<label for="reorderPoint" class="text-sm font-medium">Reorder Point</label>
-							<Input
-								id="reorderPoint"
-								name="reorderPoint"
-								type="number"
-								bind:value={$updateFormData.reorderPoint}
-								aria-invalid={$updateErrors.reorderPoint ? 'true' : undefined}
-							/>
-							{#if $updateErrors.reorderPoint}
-								<p class="text-destructive text-xs">{$updateErrors.reorderPoint}</p>
-							{/if}
-						</div>
+									<Separator />
 
-						<Button type="submit" class="w-full" disabled={$updateDelayed}>
-							{#if $updateDelayed}
-								<Loader2 class="mr-2 size-4 animate-spin" />
-							{/if}
-							Save Changes
+									<div class="grid gap-4 sm:grid-cols-2">
+										<div class="space-y-2">
+											<label for="unitPrice" class="text-sm font-medium">Unit Price</label>
+											<Input
+												id="unitPrice"
+												name="unitPrice"
+												type="number"
+												step="0.01"
+												bind:value={$updateFormData.unitPrice}
+												aria-invalid={$updateErrors.unitPrice ? 'true' : undefined}
+											/>
+											{#if $updateErrors.unitPrice}
+												<p class="text-destructive text-xs">{$updateErrors.unitPrice}</p>
+											{/if}
+										</div>
+
+										<div class="space-y-2">
+											<label for="reorderPoint" class="text-sm font-medium">Reorder Point</label>
+											<Input
+												id="reorderPoint"
+												name="reorderPoint"
+												type="number"
+												bind:value={$updateFormData.reorderPoint}
+												aria-invalid={$updateErrors.reorderPoint ? 'true' : undefined}
+											/>
+											{#if $updateErrors.reorderPoint}
+												<p class="text-destructive text-xs">{$updateErrors.reorderPoint}</p>
+											{/if}
+										</div>
+									</div>
+								</div>
+							</div>
+
+							<div class="mt-6 flex justify-end border-t pt-4">
+								<Button type="submit" disabled={$updateDelayed}>
+									{#if $updateDelayed}
+										<Loader2 class="mr-2 size-4 animate-spin" />
+									{/if}
+									Save Changes
+								</Button>
+							</div>
+						</form>
+					{:else}
+						<div class="grid gap-6 md:grid-cols-3">
+							<div class="md:col-span-1">
+								<div class="aspect-square overflow-hidden rounded-lg border bg-muted/30">
+									{#if data.product.imageUrl}
+										<img
+											src={data.product.imageUrl}
+											alt={data.product.name}
+											class="h-full w-full object-cover"
+										/>
+									{:else}
+										<div class="flex h-full w-full flex-col items-center justify-center text-muted-foreground">
+											<ImageIcon class="size-12 mb-2" />
+											<span class="text-sm">No image</span>
+										</div>
+									{/if}
+								</div>
+							</div>
+
+							<div class="md:col-span-2">
+								<dl class="space-y-4">
+									<div>
+										<dt class="text-muted-foreground text-sm">Description</dt>
+										<dd class="mt-1">{data.product.description || 'No description'}</dd>
+									</div>
+									<Separator />
+									<div class="grid grid-cols-2 gap-4">
+										<div>
+											<dt class="text-muted-foreground text-sm">Unit Price</dt>
+											<dd class="mt-1 text-lg font-semibold">
+												{data.product.unitPrice.toLocaleString('zh-CN', {
+													style: 'currency',
+													currency: data.product.currency
+												})}
+											</dd>
+										</div>
+										<div>
+											<dt class="text-muted-foreground text-sm">Currency</dt>
+											<dd class="mt-1">{data.product.currency}</dd>
+										</div>
+									</div>
+									<Separator />
+									<div class="grid grid-cols-2 gap-4">
+										<div>
+											<dt class="text-muted-foreground text-sm">Created</dt>
+											<dd class="mt-1 text-sm">
+												{new Date(data.product.createdAt).toLocaleDateString('zh-CN')}
+											</dd>
+										</div>
+										<div>
+											<dt class="text-muted-foreground text-sm">Updated</dt>
+											<dd class="mt-1 text-sm">
+												{new Date(data.product.updatedAt).toLocaleDateString('zh-CN')}
+											</dd>
+										</div>
+									</div>
+								</dl>
+							</div>
+						</div>
+					{/if}
+				</Card.Content>
+			</Card.Root>
+		</div>
+
+		<div class="lg:col-span-1">
+			<Card.Root>
+				<Card.Header>
+					<Card.Title>Stock Management</Card.Title>
+				</Card.Header>
+				<Card.Content class="space-y-4">
+					<div class="grid grid-cols-2 gap-4">
+						<div class="bg-muted/50 rounded-lg p-4 text-center">
+							<div class="text-muted-foreground text-sm">Current Stock</div>
+							<div class="text-3xl font-bold">{data.product.stockQuantity}</div>
+						</div>
+						<div class="bg-muted/50 rounded-lg p-4 text-center">
+							<div class="text-muted-foreground text-sm">Reorder Point</div>
+							<div class="text-3xl font-bold">{data.product.reorderPoint}</div>
+						</div>
+					</div>
+
+					<div class="flex gap-2">
+						<Button class="flex-1" variant="outline" onclick={() => startAdjustStock('add')}>
+							<Plus class="mr-2 size-4" />
+							Add Stock
 						</Button>
-					</form>
-				{:else}
-					<dl class="space-y-4">
-						<div>
-							<dt class="text-muted-foreground text-sm">Description</dt>
-							<dd class="mt-1">{data.product.description || 'No description'}</dd>
-						</div>
-						<Separator />
-						<div class="grid grid-cols-2 gap-4">
-							<div>
-								<dt class="text-muted-foreground text-sm">Unit Price</dt>
-								<dd class="mt-1 text-lg font-semibold">
-									{data.product.unitPrice.toLocaleString('zh-CN', {
-										style: 'currency',
-										currency: data.product.currency
-									})}
-								</dd>
-							</div>
-							<div>
-								<dt class="text-muted-foreground text-sm">Currency</dt>
-								<dd class="mt-1">{data.product.currency}</dd>
-							</div>
-						</div>
-						<Separator />
-						<div class="grid grid-cols-2 gap-4">
-							<div>
-								<dt class="text-muted-foreground text-sm">Created</dt>
-								<dd class="mt-1 text-sm">
-									{new Date(data.product.createdAt).toLocaleDateString('zh-CN')}
-								</dd>
-							</div>
-							<div>
-								<dt class="text-muted-foreground text-sm">Updated</dt>
-								<dd class="mt-1 text-sm">
-									{new Date(data.product.updatedAt).toLocaleDateString('zh-CN')}
-								</dd>
-							</div>
-						</div>
-					</dl>
-				{/if}
-			</Card.Content>
-		</Card.Root>
-
-		<Card.Root>
-			<Card.Header>
-				<Card.Title>Stock Management</Card.Title>
-			</Card.Header>
-			<Card.Content class="space-y-4">
-				<div class="grid grid-cols-2 gap-4">
-					<div class="bg-muted/50 rounded-lg p-4 text-center">
-						<div class="text-muted-foreground text-sm">Current Stock</div>
-						<div class="text-3xl font-bold">{data.product.stockQuantity}</div>
+						<Button class="flex-1" variant="outline" onclick={() => startAdjustStock('subtract')}>
+							<Minus class="mr-2 size-4" />
+							Remove Stock
+						</Button>
 					</div>
-					<div class="bg-muted/50 rounded-lg p-4 text-center">
-						<div class="text-muted-foreground text-sm">Reorder Point</div>
-						<div class="text-3xl font-bold">{data.product.reorderPoint}</div>
-					</div>
-				</div>
 
-				<div class="flex gap-2">
-					<Button class="flex-1" variant="outline" onclick={() => startAdjustStock('add')}>
-						<Plus class="mr-2 size-4" />
-						Add Stock
-					</Button>
-					<Button class="flex-1" variant="outline" onclick={() => startAdjustStock('subtract')}>
-						<Minus class="mr-2 size-4" />
-						Remove Stock
-					</Button>
-				</div>
+					{#if showAdjustStock}
+						<form
+							method="POST"
+							action="?/adjustStock"
+							use:stockEnhance
+							class="bg-muted/30 space-y-3 rounded-lg p-4"
+						>
+							<div class="flex items-center justify-between">
+								<h4 class="font-medium">
+									{$stockFormData.adjustmentType === 'add' ? 'Add Stock' : 'Remove Stock'}
+								</h4>
+								<Button
+									type="button"
+									variant="ghost"
+									size="sm"
+									onclick={() => (showAdjustStock = false)}
+								>
+									Cancel
+								</Button>
+							</div>
 
-				{#if showAdjustStock}
-					<form
-						method="POST"
-						action="?/adjustStock"
-						use:stockEnhance
-						class="bg-muted/30 space-y-3 rounded-lg p-4"
-					>
-						<div class="flex items-center justify-between">
-							<h4 class="font-medium">
-								{$stockFormData.adjustmentType === 'add' ? 'Add Stock' : 'Remove Stock'}
-							</h4>
-							<Button
-								type="button"
-								variant="ghost"
-								size="sm"
-								onclick={() => (showAdjustStock = false)}
-							>
-								Cancel
-							</Button>
-						</div>
+							<input type="hidden" name="adjustmentType" value={$stockFormData.adjustmentType} />
 
-						<input type="hidden" name="adjustmentType" value={$stockFormData.adjustmentType} />
-
-						<div class="space-y-2">
-							<label for="quantity" class="text-sm font-medium">Quantity</label>
-							<Input
-								id="quantity"
-								name="quantity"
-								type="number"
-								min="1"
-								bind:value={$stockFormData.quantity}
-								aria-invalid={$stockErrors.quantity ? 'true' : undefined}
-							/>
-							{#if $stockErrors.quantity}
-								<p class="text-destructive text-xs">{$stockErrors.quantity}</p>
-							{/if}
-						</div>
-
-						<div class="space-y-2">
-							<label for="reason" class="text-sm font-medium">Reason</label>
-							<select
-								id="reason"
-								name="reason"
-								class="border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm"
-								bind:value={$stockFormData.reason}
-							>
-								{#if $stockFormData.adjustmentType === 'add'}
-									<option value="receipt">Receipt / Purchase</option>
-									<option value="return">Customer Return</option>
-									<option value="adjustment">Inventory Adjustment</option>
-								{:else}
-									<option value="shipment">Shipment / Sale</option>
-									<option value="damage">Damaged / Lost</option>
-									<option value="adjustment">Inventory Adjustment</option>
+							<div class="space-y-2">
+								<label for="quantity" class="text-sm font-medium">Quantity</label>
+								<Input
+									id="quantity"
+									name="quantity"
+									type="number"
+									min="1"
+									bind:value={$stockFormData.quantity}
+									aria-invalid={$stockErrors.quantity ? 'true' : undefined}
+								/>
+								{#if $stockErrors.quantity}
+									<p class="text-destructive text-xs">{$stockErrors.quantity}</p>
 								{/if}
-							</select>
+							</div>
+
+							<div class="space-y-2">
+								<label for="reason" class="text-sm font-medium">Reason</label>
+								<select
+									id="reason"
+									name="reason"
+									class="border-input bg-background flex h-9 w-full rounded-md border px-3 py-1 text-sm"
+									bind:value={$stockFormData.reason}
+								>
+									{#if $stockFormData.adjustmentType === 'add'}
+										<option value="receipt">Receipt / Purchase</option>
+										<option value="return">Customer Return</option>
+										<option value="adjustment">Inventory Adjustment</option>
+									{:else}
+										<option value="shipment">Shipment / Sale</option>
+										<option value="damage">Damaged / Lost</option>
+										<option value="adjustment">Inventory Adjustment</option>
+									{/if}
+								</select>
+							</div>
+
+							<div class="space-y-2">
+								<label for="reference" class="text-sm font-medium">Reference (Optional)</label>
+								<Input
+									id="reference"
+									name="reference"
+									placeholder="Order #, PO #, etc."
+									bind:value={$stockFormData.reference}
+								/>
+							</div>
+
+							<Button type="submit" class="w-full" disabled={$stockDelayed}>
+								{#if $stockDelayed}
+									<Loader2 class="mr-2 size-4 animate-spin" />
+								{/if}
+								{$stockFormData.adjustmentType === 'add' ? 'Add' : 'Remove'} Stock
+							</Button>
+						</form>
+					{/if}
+
+					{#if $stockMessage && !$stockMessage.includes('adjusted')}
+						<div class="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
+							{$stockMessage}
 						</div>
-
-						<div class="space-y-2">
-							<label for="reference" class="text-sm font-medium">Reference (Optional)</label>
-							<Input
-								id="reference"
-								name="reference"
-								placeholder="Order #, PO #, etc."
-								bind:value={$stockFormData.reference}
-							/>
-						</div>
-
-						<Button type="submit" class="w-full" disabled={$stockDelayed}>
-							{#if $stockDelayed}
-								<Loader2 class="mr-2 size-4 animate-spin" />
-							{/if}
-							{$stockFormData.adjustmentType === 'add' ? 'Add' : 'Remove'} Stock
-						</Button>
-					</form>
-				{/if}
-
-				{#if $stockMessage && !$stockMessage.includes('adjusted')}
-					<div class="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
-						{$stockMessage}
-					</div>
-				{/if}
-			</Card.Content>
-		</Card.Root>
+					{/if}
+				</Card.Content>
+			</Card.Root>
+		</div>
 	</div>
 </div>

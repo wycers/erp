@@ -10,6 +10,7 @@ export const createProductSchema = z.object({
 		.transform((v) => v.toUpperCase()),
 	name: z.string().min(1, 'Name is required').max(255, 'Name is too long'),
 	description: z.string().max(1000, 'Description is too long').optional(),
+	imageUrl: z.string().optional(),
 	unitPrice: z.coerce.number().min(0, 'Price must be positive'),
 	currency: currencyEnum.default('CNY'),
 	initialStock: z.coerce.number().int().min(0, 'Stock must be non-negative').default(0),
@@ -19,6 +20,7 @@ export const createProductSchema = z.object({
 export const updateProductSchema = z.object({
 	name: z.string().min(1, 'Name is required').max(255, 'Name is too long'),
 	description: z.string().max(1000, 'Description is too long').optional(),
+	imageUrl: z.string().optional(),
 	unitPrice: z.coerce.number().min(0, 'Price must be positive'),
 	reorderPoint: z.coerce.number().int().min(0, 'Reorder point must be non-negative')
 })

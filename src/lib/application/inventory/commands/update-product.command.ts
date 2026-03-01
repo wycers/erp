@@ -6,6 +6,7 @@ export interface UpdateProductInput {
 	id: string
 	name?: string
 	description?: string
+	imageUrl?: string
 	unitPrice?: number
 	reorderPoint?: number
 }
@@ -25,6 +26,7 @@ export class UpdateProductCommand {
 			product.updateDetails({
 				name: input.name,
 				description: input.description,
+				imageUrl: input.imageUrl,
 				unitPrice: input.unitPrice
 			})
 

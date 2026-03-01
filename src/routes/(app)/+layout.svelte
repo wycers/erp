@@ -1,18 +1,25 @@
 <script lang="ts">
-	import type { Snippet } from 'svelte'
-	import { Button } from '$lib/components/ui/button'
-	import { Package, ShoppingCart, LayoutDashboard, LogOut } from '@lucide/svelte'
+	import type { Snippet } from 'svelte';
+	import { Button } from '$lib/components/ui/button';
+	import { Package, ShoppingCart, LayoutDashboard, LogOut } from '@lucide/svelte';
+	import { MobileNav, type NavItem } from '$lib/components/ui/mobile-nav';
 
 	interface Props {
-		data: { user: { name: string; email: string } }
-		children: Snippet
+		data: { user: { name: string; email: string } };
+		children: Snippet;
 	}
 
-	let { data, children }: Props = $props()
+	let { data, children }: Props = $props();
+
+	const navItems: NavItem[] = [
+		{ href: '/', label: 'Dashboard', icon: LayoutDashboard, matchPaths: ['/'] },
+		{ href: '/inventory', label: 'Inventory', icon: Package },
+		{ href: '/orders', label: 'Orders', icon: ShoppingCart }
+	];
 </script>
 
 <div class="flex min-h-screen">
-	<aside class="bg-muted/40 w-64 border-r p-4">
+	<aside class="bg-muted/40 hidden w-64 border-r p-4 md:block">
 		<div class="mb-8">
 			<h1 class="text-xl font-bold">ERP System</h1>
 			<p class="text-muted-foreground text-sm">{data.user?.email}</p>
@@ -43,7 +50,13 @@
 		</div>
 	</aside>
 
-	<main class="flex-1 p-8">
+	<main class="flex-1 p-4 pb-20 md:p-8 md:pb-8">
+		<div class="mb-4 md:hidden">
+			<h1 class="text-xl font-bold">ERP System</h1>
+			<p class="text-muted-foreground text-sm">{data.user?.email}</p>
+		</div>
 		{@render children()}
 	</main>
 </div>
+
+<MobileNav class="md:hidden" items={navItems} basePath="" />

@@ -6,9 +6,18 @@
 		name?: string;
 		class?: string;
 		disabled?: boolean;
+		aspectRatio?: 'default' | 'square';
 	};
 
-	let { value = $bindable(''), name, class: className, disabled = false }: Props = $props();
+	let {
+		value = $bindable(''),
+		name,
+		class: className,
+		disabled = false,
+		aspectRatio = 'default'
+	}: Props = $props();
+
+	const isSquare = $derived(aspectRatio === 'square');
 
 	let uploading = $state(false);
 	let error = $state('');
@@ -97,7 +106,8 @@
 	role="button"
 	tabindex="0"
 	class={cn(
-		'border-input relative flex min-h-[120px] cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed transition-colors',
+		'border-input relative flex cursor-pointer flex-col items-center justify-center rounded-md border-2 border-dashed transition-colors',
+		isSquare ? 'aspect-square' : 'min-h-[120px]',
 		dragover && 'border-primary bg-primary/5',
 		disabled && 'cursor-not-allowed opacity-50',
 		error && 'border-destructive',
@@ -129,7 +139,14 @@
 		</div>
 	{:else if value}
 		<div class="relative h-full w-full p-2">
-			<img src={value} alt="已上传图片" class="mx-auto max-h-[100px] rounded object-contain" />
+			<img
+				src={value}
+				alt="已上传图片"
+				class={cn(
+					'rounded',
+					isSquare ? 'h-full w-full object-cover' : 'mx-auto max-h-[100px] object-contain'
+				)}
+			/>
 			<button
 				type="button"
 				aria-label="删除图片"

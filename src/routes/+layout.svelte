@@ -4,6 +4,8 @@
 	import favicon from '$lib/assets/favicon.svg';
 	import { dev } from '$app/environment';
 	import { onMount } from 'svelte';
+	import { onNavigate } from '$app/navigation';
+	import { LoadingBar } from '$lib/components/ui/loading-bar';
 
 	let { children } = $props();
 
@@ -12,6 +14,17 @@
 
 		void navigator.serviceWorker.register(resolve('/service-worker.js')).catch((error) => {
 			console.error('Service worker registration failed', error);
+		});
+	});
+
+	onNavigate((navigation) => {
+		if (!document.startViewTransition) return;
+
+		return new Promise((resolve) => {
+			document.startViewTransition(async () => {
+				resolve();
+				await navigation.complete;
+			});
 		});
 	});
 </script>
@@ -26,4 +39,5 @@
 	<meta name="apple-mobile-web-app-title" content="ERP 工作台" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 </svelte:head>
+<LoadingBar />
 {@render children()}

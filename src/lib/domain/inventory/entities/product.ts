@@ -11,6 +11,7 @@ export interface ProductProps {
 	sku: SKU
 	name: string
 	description?: string
+	imageUrl?: string
 	unitPrice: Money
 	stockQuantity: Quantity
 	reorderPoint: Quantity
@@ -21,6 +22,7 @@ export interface CreateProductInput {
 	sku: string
 	name: string
 	description?: string
+	imageUrl?: string
 	unitPrice: number
 	currency?: Currency
 	initialStock?: number
@@ -32,6 +34,7 @@ export interface ReconstructProductInput {
 	sku: string
 	name: string
 	description?: string
+	imageUrl?: string
 	unitPrice: number
 	currency: Currency
 	stockQuantity: number
@@ -51,6 +54,7 @@ export class Product {
 			sku: SKU.create(input.sku),
 			name: input.name.trim(),
 			description: input.description?.trim(),
+			imageUrl: input.imageUrl?.trim() || undefined,
 			unitPrice: Money.create(input.unitPrice, input.currency ?? 'CNY'),
 			stockQuantity: Quantity.create(input.initialStock ?? 0),
 			reorderPoint: Quantity.create(input.reorderPoint ?? 10),
@@ -64,6 +68,7 @@ export class Product {
 			sku: SKU.fromString(input.sku),
 			name: input.name,
 			description: input.description,
+			imageUrl: input.imageUrl,
 			unitPrice: Money.create(input.unitPrice, input.currency),
 			stockQuantity: Quantity.create(input.stockQuantity),
 			reorderPoint: Quantity.create(input.reorderPoint),
@@ -101,12 +106,20 @@ export class Product {
 		}
 	}
 
-	updateDetails(input: { name?: string; description?: string; unitPrice?: number }): void {
+	updateDetails(input: {
+		name?: string
+		description?: string
+		imageUrl?: string
+		unitPrice?: number
+	}): void {
 		if (input.name !== undefined) {
 			this._props.name = input.name.trim()
 		}
 		if (input.description !== undefined) {
 			this._props.description = input.description.trim() || undefined
+		}
+		if (input.imageUrl !== undefined) {
+			this._props.imageUrl = input.imageUrl.trim() || undefined
 		}
 		if (input.unitPrice !== undefined) {
 			this._props.unitPrice = Money.create(input.unitPrice, this._props.unitPrice.currency)
@@ -140,6 +153,9 @@ export class Product {
 	}
 	get description(): string | undefined {
 		return this._props.description
+	}
+	get imageUrl(): string | undefined {
+		return this._props.imageUrl
 	}
 	get unitPrice(): Money {
 		return this._props.unitPrice

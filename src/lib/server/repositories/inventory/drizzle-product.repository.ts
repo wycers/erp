@@ -79,6 +79,7 @@ export class DrizzleProductRepository implements ProductRepository {
 				set: {
 					name: row.name,
 					description: row.description,
+					imageUrl: row.imageUrl,
 					unitPrice: row.unitPrice,
 					currency: row.currency,
 					stockQuantity: row.stockQuantity,
@@ -108,6 +109,7 @@ export class DrizzleProductRepository implements ProductRepository {
 			sku: row.sku,
 			name: row.name,
 			description: row.description ?? undefined,
+			imageUrl: row.imageUrl ?? undefined,
 			unitPrice: parseFloat(row.unitPrice),
 			currency: row.currency as Currency,
 			stockQuantity: row.stockQuantity,
@@ -124,6 +126,7 @@ export class DrizzleProductRepository implements ProductRepository {
 			sku: product.sku.value,
 			name: product.name,
 			description: product.description ?? null,
+			imageUrl: product.imageUrl ?? null,
 			unitPrice: product.unitPrice.amount.toString(),
 			currency: product.unitPrice.currency,
 			stockQuantity: product.stockQuantity.value,

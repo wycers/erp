@@ -25,6 +25,7 @@ export const actions: Actions = {
 			sku: form.data.sku,
 			name: form.data.name,
 			description: form.data.description,
+			imageUrl: form.data.imageUrl || undefined,
 			unitPrice: form.data.unitPrice,
 			currency: form.data.currency,
 			initialStock: form.data.initialStock,

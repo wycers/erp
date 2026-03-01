@@ -6,6 +6,7 @@ export interface ProductDTO {
 	sku: string
 	name: string
 	description?: string
+	imageUrl?: string
 	unitPrice: number
 	currency: Currency
 	stockQuantity: number
@@ -21,6 +22,7 @@ export function toProductDTO(product: Product): ProductDTO {
 		sku: product.sku.value,
 		name: product.name,
 		description: product.description,
+		imageUrl: product.imageUrl,
 		unitPrice: product.unitPrice.amount,
 		currency: product.unitPrice.currency,
 		stockQuantity: product.stockQuantity.value,

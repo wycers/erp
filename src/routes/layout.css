@@ -121,3 +121,49 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* View Transitions API */
+@keyframes view-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes view-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes view-slide-from-right {
+  from {
+    transform: translateX(30px);
+  }
+}
+
+@keyframes view-slide-to-left {
+  to {
+    transform: translateX(-30px);
+  }
+}
+
+::view-transition-old(root) {
+  animation:
+    view-fade-out 0.25s ease-out,
+    view-slide-to-left 0.25s ease-out;
+}
+
+::view-transition-new(root) {
+  animation:
+    view-fade-in 0.25s ease-out,
+    view-slide-from-right 0.25s ease-out;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
