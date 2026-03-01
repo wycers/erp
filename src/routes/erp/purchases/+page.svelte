@@ -6,6 +6,7 @@
 	import { Alert } from '$lib/components/ui/alert';
 	import * as Card from '$lib/components/ui/card';
 	import PurchaseLineInput from './PurchaseLineInput.svelte';
+	import { getDocumentStatusLabel, type DocumentStatus } from '$lib/utils/status-labels';
 
 	let { data, form }: { data: PageServerData; form: ActionData } = $props();
 </script>
@@ -52,7 +53,7 @@
 						<div>
 							<h3 class="font-semibold">{order.orderNumber}</h3>
 							<p class="text-muted-foreground text-sm break-words">
-								状态：{order.status} | 运费：{order.freightAmount} | 创建：{order.createdAt}
+								状态：{getDocumentStatusLabel(order.status as DocumentStatus)} | 运费：{order.freightAmount} | 创建：{order.createdAt}
 							</p>
 						</div>
 						{#if order.status === 'DRAFT'}

@@ -20,6 +20,7 @@
 		Loader2
 	} from '@lucide/svelte'
 	import type { PageData, ActionData } from './$types'
+	import { orderStatusLabels, type OrderStatus } from '$lib/utils/status-labels'
 
 	let { data, form: actionForm }: { data: PageData; form: ActionData } = $props()
 
@@ -50,16 +51,6 @@
 		shipped: 'bg-indigo-100 text-indigo-800',
 		delivered: 'bg-green-100 text-green-800',
 		cancelled: 'bg-red-100 text-red-800'
-	}
-
-	const statusLabels: Record<string, string> = {
-		draft: 'Draft',
-		pending: 'Pending',
-		confirmed: 'Confirmed',
-		processing: 'Processing',
-		shipped: 'Shipped',
-		delivered: 'Delivered',
-		cancelled: 'Cancelled'
 	}
 
 	function getNextActions(
@@ -101,7 +92,7 @@
 					<span
 						class="rounded-full px-2 py-1 text-xs font-medium {statusColors[data.order.status]}"
 					>
-						{statusLabels[data.order.status]}
+						{orderStatusLabels[data.order.status as OrderStatus]}
 					</span>
 				</div>
 				<p class="text-muted-foreground">{data.order.customerName}</p>
@@ -138,7 +129,7 @@
 			{#if actionForm.action === 'placeOrder'}
 				Order placed successfully: {actionForm.orderNumber}
 			{:else if actionForm.action === 'updateStatus'}
-				Order status updated to: {statusLabels[actionForm.newStatus ?? '']}
+				Order status updated to: {orderStatusLabels[(actionForm.newStatus ?? '') as OrderStatus]}
 			{/if}
 		</div>
 	{/if}

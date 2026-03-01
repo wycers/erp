@@ -5,6 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Alert } from '$lib/components/ui/alert';
 	import * as Card from '$lib/components/ui/card';
+	import { getDocumentStatusLabel, type DocumentStatus } from '$lib/utils/status-labels';
 
 	let { data, form }: { data: PageServerData; form: ActionData } = $props();
 </script>
@@ -61,8 +62,7 @@
 							<p class="text-muted-foreground mt-1 text-sm">
 								<span class="block break-words">
 									成品：#{order.productId}
-									{order.productCode} - {order.productName} | 数量：{order.outputQuantity} | 状态：
-									{order.status}
+									{order.productCode} - {order.productName} | 数量：{order.outputQuantity} | 状态：{getDocumentStatusLabel(order.status as DocumentStatus)}
 								</span>
 								<span class="block">
 									单位成本：{order.unitCost} | 总耗材成本：{order.totalConsumedCost}

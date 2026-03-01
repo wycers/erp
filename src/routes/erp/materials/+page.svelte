@@ -5,6 +5,7 @@
 	import { Input } from '$lib/components/ui/input';
 	import { Textarea } from '$lib/components/ui/textarea';
 	import { Alert } from '$lib/components/ui/alert';
+	import { ImageUploader } from '$lib/components/ui/image-uploader';
 	import * as Card from '$lib/components/ui/card';
 
 	let { data, form }: { data: PageServerData; form: ActionData } = $props();
@@ -30,8 +31,8 @@
 						<Input class="mt-1" name="unit" placeholder="如：米、个、件" />
 					</label>
 					<label class="text-muted-foreground text-sm">
-						图片 URL
-						<Input class="mt-1" name="imageUrl" />
+						图片
+						<ImageUploader class="mt-1" name="imageUrl" />
 					</label>
 					<label class="text-muted-foreground text-sm sm:col-span-2">
 						备注
@@ -55,7 +56,11 @@
 		{#each data.materials as material (material.id)}
 			<Card.Root class="gap-2 py-3">
 				<Card.Content class="px-3">
-					<form method="post" action="?/update" use:enhance class="space-y-2">
+					<form method="post" action="?/update" use:enhance={() => {
+					return async ({ update }) => {
+						await update({ reset: false });
+					};
+				}} class="space-y-2">
 						<input type="hidden" name="id" value={material.id} />
 						<div class="grid gap-3 sm:grid-cols-2">
 							<label class="text-muted-foreground text-sm">
@@ -71,8 +76,8 @@
 								<Input class="mt-1" name="unit" value={material.unit ?? ''} placeholder="如：米、个、件" />
 							</label>
 							<label class="text-muted-foreground text-sm">
-								图片 URL
-								<Input class="mt-1" name="imageUrl" value={material.imageUrl ?? ''} />
+								图片
+								<ImageUploader class="mt-1" name="imageUrl" value={material.imageUrl ?? ''} />
 							</label>
 							<label class="text-muted-foreground text-sm sm:col-span-2">
 								备注

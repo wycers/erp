@@ -5,6 +5,7 @@
 	import { Badge } from '$lib/components/ui/badge'
 	import { Plus, Search, ShoppingCart, Clock, CheckCircle, Truck, XCircle } from '@lucide/svelte'
 	import type { PageData } from './$types'
+	import { orderStatusLabels, type OrderStatus } from '$lib/utils/status-labels'
 
 	let { data }: { data: PageData } = $props()
 
@@ -18,16 +19,6 @@
 		shipped: 'bg-indigo-100 text-indigo-800',
 		delivered: 'bg-green-100 text-green-800',
 		cancelled: 'bg-red-100 text-red-800'
-	}
-
-	const statusLabels: Record<string, string> = {
-		draft: 'Draft',
-		pending: 'Pending',
-		confirmed: 'Confirmed',
-		processing: 'Processing',
-		shipped: 'Shipped',
-		delivered: 'Delivered',
-		cancelled: 'Cancelled'
 	}
 </script>
 
@@ -173,7 +164,7 @@
 									</td>
 									<td class="py-3">
 										<span class="rounded-full px-2 py-1 text-xs font-medium {statusColors[order.status]}">
-											{statusLabels[order.status]}
+											{orderStatusLabels[order.status as OrderStatus]}
 										</span>
 									</td>
 									<td class="py-3 text-sm">

@@ -6,6 +6,7 @@
 	import { Alert } from '$lib/components/ui/alert';
 	import * as Card from '$lib/components/ui/card';
 	import SalesLineInput from './SalesLineInput.svelte';
+	import { getDocumentStatusLabel, type DocumentStatus } from '$lib/utils/status-labels';
 
 	let { data, form }: { data: PageServerData; form: ActionData } = $props();
 </script>
@@ -47,7 +48,7 @@
 						<div>
 							<h3 class="font-semibold">{shipment.shipmentNumber}</h3>
 							<p class="text-muted-foreground text-sm">
-								状态：{shipment.status} | 创建：{shipment.createdAt}
+								状态：{getDocumentStatusLabel(shipment.status as DocumentStatus)} | 创建：{shipment.createdAt}
 							</p>
 						</div>
 						{#if shipment.status === 'DRAFT'}
