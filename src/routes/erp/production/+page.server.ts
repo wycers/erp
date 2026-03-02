@@ -1,5 +1,12 @@
 import { asc, desc, eq } from 'drizzle-orm';
+import { fail } from '@sveltejs/kit';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import type { Actions, PageServerLoad } from './$types';
+import {
+	createProductionDraftFormSchema,
+	postProductionOrderFormSchema
+} from '$lib/application/erp/schemas';
 import { db } from '$lib/server/db';
 import {
 	finishedProduct,
@@ -7,12 +14,14 @@ import {
 	productionOrder,
 	productionOrderComponent
 } from '$lib/server/db/schema';
-import { toErpActionFailure } from '$lib/server/erp/action-error';
-import { toNumber } from '$lib/server/erp/math';
 import { createProductionDraft, postProductionOrder } from '$lib/server/erp/production';
+import { setFormMessageError, toActionErrorMessage } from '$lib/server/erp/superforms-action';
 
-const getText = (formData: FormData, key: string): string =>
-	formData.get(key)?.toString().trim() ?? '';
+const createProductionDraftAdapter = zod4(createProductionDraftFormSchema);
+const postProductionOrderAdapter = zod4(postProductionOrderFormSchema);
+
+const createPostFormId = (productionOrderId: number): string =>
+	`production-post-${productionOrderId}`;
 
 export const load: PageServerLoad = async () => {
 	const [products, orders, components] = await Promise.all([
@@ -56,36 +65,100 @@ export const load: PageServerLoad = async () => {
 		componentMap.set(component.productionOrderId, current);
 	}
 
+	const ordersWithComponents = orders.map((order) => ({
+		...order,
+		components: componentMap.get(order.id) ?? []
+	}));
+
+	const createDraftForm = await superValidate(
+		{
+			orderNumber: '',
+			productId: products[0]?.id ?? 0,
+			outputQuantity: 1
+		},
+		createProductionDraftAdapter
+	);
+
+	const postForms = await Promise.all(
+		ordersWithComponents.map((order) =>
+			superValidate(
+				{
+					productionOrderId: order.id
+				},
+				postProductionOrderAdapter,
+				{
+					id: createPostFormId(order.id)
+				}
+			)
+		)
+	);
+
 	return {
 		products,
-		orders: orders.map((order) => ({
-			...order,
-			components: componentMap.get(order.id) ?? []
-		}))
+		orders: ordersWithComponents,
+		createDraftForm,
+		postForms
 	};
 };
 
 export const actions: Actions = {
 	createDraft: async (event) => {
-		const formData = await event.request.formData();
+		const form = await superValidate(event.request, createProductionDraftAdapter);
+		if (!form.valid) {
+			return fail(400, { form, action: 'createDraft' });
+		}
+
 		try {
 			await createProductionDraft({
-				orderNumber: getText(formData, 'orderNumber'),
-				productId: Number(formData.get('productId')),
-				outputQuantity: toNumber(getText(formData, 'outputQuantity'))
+				orderNumber: form.data.orderNumber,
+				productId: form.data.productId,
+				outputQuantity: form.data.outputQuantity
 			});
 		} catch (error) {
-			return toErpActionFailure(error);
+			const mapped = toActionErrorMessage(error);
+			return fail(mapped.status, {
+				action: 'createDraft',
+				form: setFormMessageError(form, mapped.message),
+				message: mapped.message
+			});
 		}
-		return { message: 'Production draft created' };
+
+		return {
+			action: 'createDraft',
+			...message(form, 'Production draft created')
+		};
 	},
 	post: async (event) => {
 		const formData = await event.request.formData();
-		try {
-			await postProductionOrder(Number(formData.get('productionOrderId')));
-		} catch (error) {
-			return toErpActionFailure(error);
+		const targetProductionOrderId = Number(formData.get('productionOrderId'));
+		const form = await superValidate(formData, postProductionOrderAdapter, {
+			id: createPostFormId(targetProductionOrderId)
+		});
+
+		if (!form.valid) {
+			return fail(400, {
+				action: 'post',
+				targetProductionOrderId,
+				postForm: form
+			});
 		}
-		return { message: 'Production posted' };
+
+		try {
+			await postProductionOrder(form.data.productionOrderId);
+		} catch (error) {
+			const mapped = toActionErrorMessage(error);
+			return fail(mapped.status, {
+				action: 'post',
+				targetProductionOrderId,
+				postForm: setFormMessageError(form, mapped.message),
+				message: mapped.message
+			});
+		}
+
+		return {
+			action: 'post',
+			targetProductionOrderId,
+			message: 'Production posted'
+		};
 	}
 };

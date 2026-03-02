@@ -25,9 +25,10 @@
 		materials: Material[];
 		name?: string;
 		initialLines?: InitialLine[];
+		value?: string;
 	};
 
-	let { materials, name = 'lines', initialLines = [] }: Props = $props();
+	let { materials, name = 'lines', initialLines = [], value }: Props = $props();
 
 	function createEmptyLine(): LineItem {
 		return {
@@ -37,7 +38,31 @@
 		};
 	}
 
+	function parseSerializedLines(serialized: string): LineItem[] {
+		const rows = serialized
+			.split('\n')
+			.map((row) => row.trim())
+			.filter(Boolean);
+
+		if (rows.length === 0) {
+			return [createEmptyLine()];
+		}
+
+		return rows.map((row) => {
+			const [materialSkuId = '', quantityPerUnit = ''] = row.split(',').map((part) => part.trim());
+			return {
+				id: crypto.randomUUID(),
+				materialSkuId,
+				quantityPerUnit
+			};
+		});
+	}
+
 	function initializeLines(): LineItem[] {
+		if (typeof value === 'string') {
+			return parseSerializedLines(value);
+		}
+
 		if (initialLines.length > 0) {
 			return initialLines.map((line) => ({
 				id: crypto.randomUUID(),
@@ -49,6 +74,14 @@
 	}
 
 	let lines = $state<LineItem[]>(initializeLines());
+	let lastHydratedValue = $state<string | undefined>(value);
+
+	$effect(() => {
+		if (typeof value === 'string' && value !== lastHydratedValue) {
+			lines = parseSerializedLines(value);
+			lastHydratedValue = value;
+		}
+	});
 
 	function addLine() {
 		lines = [...lines, createEmptyLine()];
@@ -85,9 +118,9 @@
 
 	<div class="space-y-2">
 		{#each lines as line, index (line.id)}
-			<div class="bg-muted/30 flex flex-wrap items-end gap-2 rounded-md border p-2">
+			<div class="flex flex-wrap items-end gap-2 rounded-md border bg-muted/30 p-2">
 				<div class="min-w-[200px] flex-1">
-					<span class="text-muted-foreground mb-1 block text-xs">原料</span>
+					<span class="mb-1 block text-xs text-muted-foreground">原料</span>
 					<Combobox
 						items={materialOptions}
 						bind:value={line.materialSkuId}
@@ -98,7 +131,7 @@
 
 				<div class="flex items-end gap-1">
 					<label class="w-24">
-						<span class="text-muted-foreground mb-1 block text-xs">用量</span>
+						<span class="mb-1 block text-xs text-muted-foreground">用量</span>
 						<Input
 							type="number"
 							step="0.01"
@@ -108,7 +141,9 @@
 						/>
 					</label>
 					{#if line.materialSkuId}
-						<span class="text-muted-foreground pb-2 text-sm">{getMaterialUnit(line.materialSkuId)}</span>
+						<span class="pb-2 text-sm text-muted-foreground"
+							>{getMaterialUnit(line.materialSkuId)}</span
+						>
 					{/if}
 				</div>
 
@@ -118,7 +153,7 @@
 					size="icon-sm"
 					onclick={() => removeLine(line.id)}
 					disabled={lines.length <= 1}
-					class="text-muted-foreground hover:text-destructive shrink-0"
+					class="shrink-0 text-muted-foreground hover:text-destructive"
 				>
 					<svg
 						xmlns="http://www.w3.org/2000/svg"

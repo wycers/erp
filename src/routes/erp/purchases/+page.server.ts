@@ -1,14 +1,22 @@
 import { desc, eq } from 'drizzle-orm';
+import { fail } from '@sveltejs/kit';
+import { message, superValidate } from 'sveltekit-superforms';
+import { zod4 } from 'sveltekit-superforms/adapters';
 import type { Actions, PageServerLoad } from './$types';
+import {
+	createPurchaseDraftFormSchema,
+	postPurchaseOrderFormSchema
+} from '$lib/application/erp/schemas';
 import { db } from '$lib/server/db';
 import { materialSku, purchaseOrder, purchaseOrderLine } from '$lib/server/db/schema';
-import { toErpActionFailure } from '$lib/server/erp/action-error';
 import { parsePurchaseLinesInput } from '$lib/server/erp/line-parser';
-import { toNumber } from '$lib/server/erp/math';
 import { createPurchaseDraft, postPurchaseOrder } from '$lib/server/erp/purchase';
+import { setFormMessageError, toActionErrorMessage } from '$lib/server/erp/superforms-action';
 
-const getText = (formData: FormData, key: string): string =>
-	formData.get(key)?.toString().trim() ?? '';
+const createPurchaseDraftAdapter = zod4(createPurchaseDraftFormSchema);
+const postPurchaseOrderAdapter = zod4(postPurchaseOrderFormSchema);
+
+const createPostFormId = (purchaseOrderId: number): string => `purchase-post-${purchaseOrderId}`;
 
 export const load: PageServerLoad = async () => {
 	const [materials, orders, lines] = await Promise.all([
@@ -40,36 +48,100 @@ export const load: PageServerLoad = async () => {
 		lineMap.set(line.purchaseOrderId, current);
 	}
 
+	const ordersWithLines = orders.map((order) => ({
+		...order,
+		lines: lineMap.get(order.id) ?? []
+	}));
+
+	const createDraftForm = await superValidate(
+		{
+			orderNumber: '',
+			freightAmount: 0,
+			lines: ''
+		},
+		createPurchaseDraftAdapter
+	);
+
+	const postForms = await Promise.all(
+		ordersWithLines.map((order) =>
+			superValidate(
+				{
+					purchaseOrderId: order.id
+				},
+				postPurchaseOrderAdapter,
+				{
+					id: createPostFormId(order.id)
+				}
+			)
+		)
+	);
+
 	return {
 		materials,
-		orders: orders.map((order) => ({
-			...order,
-			lines: lineMap.get(order.id) ?? []
-		}))
+		orders: ordersWithLines,
+		createDraftForm,
+		postForms
 	};
 };
 
 export const actions: Actions = {
 	createDraft: async (event) => {
-		const formData = await event.request.formData();
+		const form = await superValidate(event.request, createPurchaseDraftAdapter);
+		if (!form.valid) {
+			return fail(400, { form, action: 'createDraft' });
+		}
+
 		try {
 			await createPurchaseDraft({
-				orderNumber: getText(formData, 'orderNumber'),
-				freightAmount: toNumber(getText(formData, 'freightAmount')),
-				lines: parsePurchaseLinesInput(getText(formData, 'lines'))
+				orderNumber: form.data.orderNumber,
+				freightAmount: form.data.freightAmount,
+				lines: parsePurchaseLinesInput(form.data.lines)
 			});
 		} catch (error) {
-			return toErpActionFailure(error);
+			const mapped = toActionErrorMessage(error);
+			return fail(mapped.status, {
+				action: 'createDraft',
+				form: setFormMessageError(form, mapped.message),
+				message: mapped.message
+			});
 		}
-		return { message: 'Purchase draft created' };
+
+		return {
+			action: 'createDraft',
+			...message(form, 'Purchase draft created')
+		};
 	},
 	post: async (event) => {
 		const formData = await event.request.formData();
-		try {
-			await postPurchaseOrder(Number(formData.get('purchaseOrderId')));
-		} catch (error) {
-			return toErpActionFailure(error);
+		const targetPurchaseOrderId = Number(formData.get('purchaseOrderId'));
+		const form = await superValidate(formData, postPurchaseOrderAdapter, {
+			id: createPostFormId(targetPurchaseOrderId)
+		});
+
+		if (!form.valid) {
+			return fail(400, {
+				action: 'post',
+				targetPurchaseOrderId,
+				postForm: form
+			});
 		}
-		return { message: 'Purchase posted' };
+
+		try {
+			await postPurchaseOrder(form.data.purchaseOrderId);
+		} catch (error) {
+			const mapped = toActionErrorMessage(error);
+			return fail(mapped.status, {
+				action: 'post',
+				targetPurchaseOrderId,
+				postForm: setFormMessageError(form, mapped.message),
+				message: mapped.message
+			});
+		}
+
+		return {
+			action: 'post',
+			targetPurchaseOrderId,
+			message: 'Purchase posted'
+		};
 	}
 };
